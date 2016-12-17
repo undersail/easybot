@@ -22,7 +22,7 @@ def reply():
 @app.route('/wechat', methods = ['GET', 'POST'] )  
 def wechat_auth():  
   if request.method == 'GET':  
-    token = 'easybot_wechat' # token  
+    token = 'xxxxxxxx' # token  
     query = request.args  
     signature = query.get('signature', '')  
     timestamp = query.get('timestamp', '')  
