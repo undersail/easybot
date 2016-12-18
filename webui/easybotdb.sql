@@ -20,7 +20,7 @@ create table t_user
 	user_type varchar(10) not null,  
 	user_name varchar(20) not null,
 	password varchar(20) default '',
-	email varchar(30) default ''
+	email varchar(30) default '',
 	address varchar(100) default '',
 	avatar varchar(200) default '',
 	remark varchar(20) default ''
