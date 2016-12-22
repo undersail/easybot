@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, make_response
 from flask import jsonify
 
+import sys
 import time  
 import hashlib
 
@@ -12,7 +13,7 @@ except ImportError:
 import MySQLdb
 conn= MySQLdb.connect(
         host='localhost',
-        port = 3306,
+        port = 1234,
         user='xxxx',
         passwd='xxxxxxxx',
         db ='xxxxxxxx',
@@ -40,8 +41,9 @@ def reply():
 @app.route('/wechat', methods = ['GET', 'POST'] )  
 def wechat():  
   # auth
+  """
   if request.method == 'GET':  
-    token = 'easybot_wechat' # token  
+    token = 'xxxxxxxx' # token  
     query = request.args  
     signature = query.get('signature', '')  
     timestamp = query.get('timestamp', '')  
@@ -52,23 +54,65 @@ def wechat():
     s = ''.join(s)  
     if ( hashlib.sha1(s).hexdigest() == signature ):    
       return make_response(echostr)  
+  """
   # reply
   if request.method == 'POST':
+    req_msg = 'Hi'
+    res_msg = '^_^'
+    remark = ''
     # Get the infomations from the recv_xml.  
     xml_recv = ET.fromstring(request.data)  
-    ToUserName = xml_recv.find("ToUserName").text  
-    FromUserName = xml_recv.find("FromUserName").text  
-    Content = xml_recv.find("Content").text
+    toUserName = xml_recv.find("ToUserName").text  
+    fromUserName = xml_recv.find("FromUserName").text  
+    # createTime = xml_recv.find("CreateTime").text
+    # msgId = xml_recv.find("MsgId").text
+    msgType = xml_recv.find("MsgType").text
+    if msgType == 'text':
+      content = xml_recv.find("Content").text
+      req_msg = content
+      res_msg = execute.decode_line(sess, model, enc_vocab, rev_dec_vocab, req_msg)
+      res_msg = res_msg.replace('_UNK', '^_^')
+      remark = 'text'
+    elif msgType == 'image':
+      picUrl = xml_recv.find("PicUrl").text
+      # mediaId = xmlrecv.find("MediaId").text
+      req_msg = picUrl
+      res_msg = 'So you sent me a picture?\r\n' + picUrl
+      remark = 'image'
+    elif msgType == 'voice':
+      # mediaId = xmlrecv.find("MediaId").text
+      # format = xmlrecv.find("Format").text
+      recognition = xml_recv.find("Recognition").text
+      req_msg = recognition
+      if req_msg != None and  req_msg != '':
+        res_msg = execute.decode_line(sess, model, enc_vocab, rev_dec_vocab, req_msg)
+        res_msg = res_msg.replace('_UNK', '^_^')
+        res_msg = 'Do you mean: ' + req_msg + '?\r\n' + res_msg
+      else:
+        req_msg = 'unknown'
+        res_msg = 'What are you saying about?'
+      remark = 'voice'
+    elif msgType == 'event':
+      event = xml_recv.find("Event").text
+      if event == 'subscribe':
+        req_msg = 'Hi easybot, finally I found you!'
+        res_msg = "Hey body, nice to meet you! Let's talk about what shall we do."
+      elif event == 'unsubscribe':
+        req_msg = 'Bye easybot, I think I will leave.'
+        res_msg = 'So finally you will go? Bye! Best wishes!'
+      remark = 'event'
+    else:
+      req_msg = 'unknown'
+      res_msg = 'So can we speak normally? Or at least send me some normal thing, e.g. your naked picture.'
+      remark = 'other'
     reply = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content><FuncFlag>0</FuncFlag></xml>"
-    res_msg = execute.decode_line(sess, model, enc_vocab, rev_dec_vocab, Content)
-    res_msg = res_msg.replace('_UNK', '^_^')
 
     #insert msg to db
-    sql = "insert into t_dialogs(dialog_type, dialog_time, req_msg, res_msg, req_user, res_user, remark) values('wechat',%d,'%s','%s','%s','%s','')"
-    cur.execute(sql % (int(time.time()), MySQLdb.escape_string(Content), MySQLdb.escape_string(res_msg), MySQLdb.escape_string(FromUserName), 'easybot'))
+    sql = "insert into t_dialogs(dialog_type, dialog_time, req_msg, res_msg, req_user, res_user, remark) values('wechat',%d,'%s','%s','%s','%s','%s')"
+    cur.execute(sql % (int(time.time()), MySQLdb.escape_string(req_msg), MySQLdb.escape_string(res_msg), MySQLdb.escape_string(fromUserName), 'easybot', remark))
     conn.commit()
 
-    response = make_response( reply % (FromUserName, ToUserName, str(int(time.time())), res_msg ) )
+    response = make_response( reply % (fromUserName, toUserName, str(int(time.time())), res_msg ) )
     response.content_type = 'application/xml'  
     return response 
 
