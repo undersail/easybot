@@ -4,6 +4,14 @@ from flask import jsonify
 import sys
 import time  
 import hashlib
+import threading
+
+def heartbeat():
+    print time.strftime('%Y-%m-%d %H:%M:%S - heartbeat', time.localtime(time.time()))
+    timer = threading.Timer(60, heartbeat)
+    timer.start()
+timer = threading.Timer(60, heartbeat)
+timer.start()
 
 try:  
     import xml.etree.cElementTree as ET  
