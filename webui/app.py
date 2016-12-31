@@ -26,7 +26,6 @@ conn= MySQLdb.connect(
         passwd='xxxxxxxx',
         db ='xxxxxxxx',
         )
-cur = conn.cursor()
 
 app = Flask(__name__,static_url_path="/static") 
 
@@ -38,12 +37,14 @@ def reply():
     req_msg = request.form['msg']
     res_msg = execute.decode_line(sess, model, enc_vocab, rev_dec_vocab, req_msg )
     res_msg = res_msg.replace('_UNK', '^_^')
+    return jsonify( { 'text': res_msg } )
 
     #insert msg to db
     sql = "insert into t_dialogs(dialog_type, dialog_time, req_msg, res_msg, req_user, res_user, remark) values('webpage',%d,'%s','%s','%s','%s','')"
+    cur = conn.cursor()
     cur.execute(sql % (int(time.time()), MySQLdb.escape_string(req_msg), MySQLdb.escape_string(res_msg), 'websession', 'easybot'))
     conn.commit()
-    return jsonify( { 'text': res_msg } )
+    conn.close()
 
 # Wechat auth
 @app.route('/wechat', methods = ['GET', 'POST'] )  
@@ -114,15 +115,16 @@ def wechat():
       res_msg = 'So can we speak normally? Or at least send me some normal thing, e.g. your naked picture.'
       remark = 'other'
     reply = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content><FuncFlag>0</FuncFlag></xml>"
-
-    #insert msg to db
-    sql = "insert into t_dialogs(dialog_type, dialog_time, req_msg, res_msg, req_user, res_user, remark) values('wechat',%d,'%s','%s','%s','%s','%s')"
-    cur.execute(sql % (int(time.time()), MySQLdb.escape_string(req_msg), MySQLdb.escape_string(res_msg), MySQLdb.escape_string(fromUserName), 'easybot', remark))
-    conn.commit()
-
     response = make_response( reply % (fromUserName, toUserName, str(int(time.time())), res_msg ) )
     response.content_type = 'application/xml'  
     return response 
+
+    #insert msg to db
+    sql = "insert into t_dialogs(dialog_type, dialog_time, req_msg, res_msg, req_user, res_user, remark) values('wechat',%d,'%s','%s','%s','%s','%s')"
+    cur = conn.cursor()
+    cur.execute(sql % (int(time.time()), MySQLdb.escape_string(req_msg), MySQLdb.escape_string(res_msg), MySQLdb.escape_string(fromUserName), 'easybot', remark))
+    conn.commit()
+    conn.close()
 
 @app.route("/")
 def index(): 
