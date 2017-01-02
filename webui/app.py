@@ -27,6 +27,9 @@ conn= MySQLdb.connect(
         db ='xxxxxxxx',
         )
 
+import re
+zhPattern = re.compile(u'[\u4e00-\u9fa5]+')
+
 app = Flask(__name__,static_url_path="/static") 
 
 #############
@@ -35,8 +38,20 @@ app = Flask(__name__,static_url_path="/static")
 @app.route('/message', methods=['POST'])
 def reply():
     req_msg = request.form['msg']
-    res_msg = execute.decode_line(sess, model, enc_vocab, rev_dec_vocab, req_msg )
+    res_msg = '^_^'
+    
+    # ensure not Chinese
+    match = zhPattern.search(req_msg)
+    if match:
+      res_msg = "Sorry, I can't speak Chinese right now, maybe later."
+    else:
+      res_msg = execute.decode_line(sess, model, enc_vocab, rev_dec_vocab, req_msg )
     res_msg = res_msg.replace('_UNK', '^_^')
+    
+    # ensure not empty
+    if res_msg == '':
+      res_msg = 'Let me think about it ...'
+
     return jsonify( { 'text': res_msg } )
 
     #insert msg to db
@@ -114,6 +129,16 @@ def wechat():
       req_msg = 'unknown'
       res_msg = 'So can we speak normally? Or at least send me some normal thing, e.g. your naked picture.'
       remark = 'other'
+
+    # ensure not Chinese
+    match = zhPattern.search(req_msg)
+    if match:
+      res_msg = "Sorry, I can't speak Chinese right now, maybe later."
+    
+    # ensure not empty
+    if res_msg == '':
+      res_msg = 'Let me think about it ...'
+  
     reply = "<xml><ToUserName><![CDATA[%s]]></ToUserName><FromUserName><![CDATA[%s]]></FromUserName><CreateTime>%s</CreateTime><MsgType><![CDATA[text]]></MsgType><Content><![CDATA[%s]]></Content><FuncFlag>0</FuncFlag></xml>"
     response = make_response( reply % (fromUserName, toUserName, str(int(time.time())), res_msg ) )
     response.content_type = 'application/xml'  
