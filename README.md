@@ -4,18 +4,40 @@ Learn to implement a chat bot with deep learning.
 The first version is based on: [tensorflow_chatbot](https://github.com/llSourcell/tensorflow_chatbot) from llSourcell.
 
 # usage
-execute.py为Python主程序，程序有三种模式：训练、测试和服务，可通过修改配置文件 seq2seq.ini 来改变模式，如训练模式：
 
-mode = train
-然后运行如下命令启动程序：
+1. Put the dataset into easybot/data/
+[How to get the sample dataset](https://github.com/suriyadeepan/datasets) 
 
+2. Change seq2seq.ini to switch to the training mode：
+`mode = train`
+
+3. Start training
+`python execute.py`
+
+4. Testing
+You can stop the training anytime, the trained model will be saved easybot/in working_dir/
+Change seq2seq.ini to switch to the testing mode, then start execute.py：
+`mode = test
 python execute.py
-测试模式：
+`
 
-mode = test
-*注意：服务模式请直接启动 webui/app.py （需预先安装 Flask 环境，见setup.sh/requirements.txt）：
+5. All the code for serve mode is in easybot/webui/
+- Main app: 
+`python webui/app.py`
 
-python webui/app.py
-若需后台运行，请使用启动脚本：
+- Startup/Shutdown:
+`sh webui/startup.sh
+sh webui/shutdown.sh`
 
-sh webui/startup.sh
+- Background runing:
+`sh webui/startup.sh`
+
+- App Daemon:
+`sh webui/app-daemon.sh`
+
+- Archive log:
+`sh webui/archivelog.sh`
+
+6. Demonstration snapshot:
+[http://www.easyapple.net/?p=1384](http://www.easyapple.net/?p=1384) 
+
