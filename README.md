@@ -17,7 +17,7 @@ The first version is based on: [tensorflow_chatbot](https://github.com/llSourcel
 `python execute.py`
 
 ## Testing
-You can stop the training anytime, the trained model will be saved easybot/in working_dir/
+You can stop the training anytime, the trained model will be saved in easybot/working_dir/. 
 Change seq2seq.ini to switch to the testing mode, then start execute.py：
 
 `mode = test`
