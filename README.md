@@ -47,5 +47,5 @@ Change seq2seq.ini to switch to the testing mode, then start execute.py：
 
 ## Demonstration snapshot:
 
-[http://www.easyapple.net/?p=1384](http://www.easyapple.net/?p=1542) 
+[Easybot 聊天机器人](http://www.easyapple.net/?p=1542) 
 
